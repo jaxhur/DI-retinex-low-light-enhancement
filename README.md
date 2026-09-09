@@ -8,7 +8,7 @@ DI-Retinex自监督训练：训练阶段只读取低照图像，不读取配对 
 | LOL-v2-real | 689 | 1 | 1000 | 689 | 689,000 |
 | LOL-v2-syn | 900 | 1 | 1000 | 900 | 900,000 |
 
-每隔 `snapshot_epoch`（默认 100）保存一次 `Epoch*.pth`，并覆盖 `latest.pth`。因此，1000 epoch 时会保存 `Epoch99.pth` 至 `Epoch999.pth`，其中 `latest.pth` 对应最后一次（`Epoch999.pth`）权重，而不是经验证集挑选的最佳权重。
+每隔 `snapshot_epoch`（默认 10）保存一次 `Epoch*.pth`，并覆盖 `latest.pth`。因此，1000 epoch 时会保存 `Epoch9.pth` 至 `Epoch999.pth`，其中 `latest.pth` 对应最后一次（`Epoch999.pth`）权重，而不是经验证集挑选的最佳权重。
 
 
 
@@ -21,10 +21,10 @@ cd DI-retinex-low-light-enhancement
 conda create -n di-retinex-modern python=3.10 -y
 conda activate di-retinex-modern
 
-python -m pip install --upgrade pip
-python -m pip install torch==2.12.0 torchvision==0.27.0 --index-url https://download.pytorch.org/whl/cu130
 
-python -m pip install numpy==1.26.4 Pillow opencv-python natsort lpips==0.1.4 gdown
+pip install torch==2.12.0 torchvision==0.27.0 --index-url https://download.pytorch.org/whl/cu130
+
+pip install numpy==1.26.4 Pillow opencv-python natsort lpips==0.1.4 gdown
 ```
 
 
@@ -97,7 +97,7 @@ python lowlight_test.py \
 mkdir -p models/di_retinex_lolv2_real
 
 python lowlight_train.py \
-  --lowlight_images_path "$DATA_ROOT/LOL-v2/Real_captured/Train/Low" \
+  --lowlight_images_path "data/LOL-v2/Real_captured/Train/Low" \
   --num_epochs 1000 \
   --train_batch_size 1 \
   --snapshots_folder models/di_retinex_lolv2_real/
@@ -107,8 +107,8 @@ python lowlight_train.py \
 
 ```shell
 python lowlight_test.py \
-  --lowlight_images_path "$DATA_ROOT/LOL-v2/Real_captured/Test/Low" \
-  --gt_images_path "$DATA_ROOT/LOL-v2/Real_captured/Test/Normal" \
+  --lowlight_images_path "data/LOL-v2/Real_captured/Test/Low" \
+  --gt_images_path "data/LOL-v2/Real_captured/Test/Normal" \
   --model_path models/di_retinex_lolv2_real/latest.pth \
   --save_path test_result/di_retinex_lolv2_real/LOL-v2-real/enhanced \
   --experiment_name di_retinex_lolv2_real \
@@ -127,7 +127,7 @@ python lowlight_test.py \
 mkdir -p models/di_retinex_lolv2_syn
 
 python lowlight_train.py \
-  --lowlight_images_path "$DATA_ROOT/LOL-v2/Synthetic/Train/Low" \
+  --lowlight_images_path "data/LOL-v2/Synthetic/Train/Low" \
   --num_epochs 1000 \
   --train_batch_size 1 \
   --snapshots_folder  models/di_retinex_lolv2_syn/
@@ -137,8 +137,8 @@ python lowlight_train.py \
 
 ```bash
 python lowlight_test.py \
-  --lowlight_images_path "$DATA_ROOT/LOL-v2/Synthetic/Test/Low" \
-  --gt_images_path "$DATA_ROOT/LOL-v2/Synthetic/Test/Normal" \
+  --lowlight_images_path "data/LOL-v2/Synthetic/Test/Low" \
+  --gt_images_path "data/LOL-v2/Synthetic/Test/Normal" \
   --model_path models/di_retinex_lolv2_syn/latest.pth \
   --save_path test_result/di_retinex_lolv2_syn/LOL-v2-syn/enhanced \
   --experiment_name di_retinex_lolv2_syn \
@@ -151,15 +151,25 @@ python lowlight_test.py \
 
 
 
+# 一键依次训练与测试三套 LOL 数据集
+
+已提供 [run_all_lol_experiments.sh](run_all_lol_experiments.sh)。它会先检查九个必要数据目录，再按 `LOL-v1 → LOL-v2-real → LOL-v2-syn` 的顺序完成训练与测试；每组训练显式使用 1000 epoch、batch size 1 和每 10 epoch 保存一次权重。任一命令失败或没有生成本次训练的 `latest.pth` 时，脚本会立即停止。
+
+先激活已安装依赖的 Conda 环境，再在项目根目录执行。请按服务器实际可见 GPU 修改 `CUDA_VISIBLE_DEVICES` 的值；脚本不会自行指定物理卡号。
+
+```bash
+CUDA_VISIBLE_DEVICES=0 bash run_all_lol_experiments.sh
+```
+
 每一组训练得到如下权重文件：
 
 ```text
-snapshots/di_retinex_lolv1/Epoch99.pth ... Epoch999.pth
-snapshots/di_retinex_lolv1/latest.pth
-snapshots/di_retinex_lolv2_real/Epoch99.pth ... Epoch999.pth
-snapshots/di_retinex_lolv2_real/latest.pth
-snapshots/di_retinex_lolv2_syn/Epoch99.pth ... Epoch999.pth
-snapshots/di_retinex_lolv2_syn/latest.pth
+models/di_retinex_lolv1/Epoch9.pth ... Epoch999.pth
+models/di_retinex_lolv1/latest.pth
+models/di_retinex_lolv2_real/Epoch9.pth ... Epoch999.pth
+models/di_retinex_lolv2_real/latest.pth
+models/di_retinex_lolv2_syn/Epoch9.pth ... Epoch999.pth
+models/di_retinex_lolv2_syn/latest.pth
 ```
 
 三套测试输出分别为：

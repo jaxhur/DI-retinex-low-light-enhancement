@@ -136,7 +136,8 @@ if __name__ == "__main__":
 	parser.add_argument('--train_batch_size', type=int, default=1)
 	parser.add_argument('--num_workers', type=int, default=4)
 	parser.add_argument('--display_iter', type=int, default=10)
-	parser.add_argument('--snapshot_epoch', type=int, default=100)
+	parser.add_argument('--snapshot_epoch', type=int, default=10,
+		help='每 10 个 epoch 保存一次 Epoch*.pth，并更新 latest.pth。')
 	parser.add_argument('--snapshots_folder', type=str, default="snapshots/")
 	parser.add_argument('--load_pretrain', type=bool, default= False)
 	parser.add_argument('--pretrain_dir', type=str, default= "snapshots/Epoch99.pth")
