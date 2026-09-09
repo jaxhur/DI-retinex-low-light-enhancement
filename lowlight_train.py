@@ -14,6 +14,16 @@ from torchvision import transforms
 from torch.distributions.normal import Normal
 import sys 
 import random
+
+
+def format_duration(seconds):
+	"""将秒数格式化为可超过 24 小时的 HH:MM:SS 训练时长。"""
+	seconds = max(0, int(round(seconds)))
+	hours, remainder = divmod(seconds, 3600)
+	minutes, seconds = divmod(remainder, 60)
+	return '{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds)
+
+
 def weights_init(m):
     classname = m.__class__.__name__
     if classname.find('Conv') != -1:
@@ -38,6 +48,12 @@ def train(config, exp, Gaussian=None):
 	optimizer = torch.optim.Adam(net.parameters(), lr=config.lr, weight_decay=config.weight_decay)
 	
 	net.train()
+	steps_per_epoch = len(train_loader)
+	if steps_per_epoch == 0:
+		raise ValueError('训练集为空，无法估计训练时间和 ETA。')
+	total_iterations = config.num_epochs * steps_per_epoch
+	# 使用单调时钟，避免服务器校时影响已用时间和 ETA 的估计。
+	training_start_time = time.monotonic()
 
 	for epoch in range(config.num_epochs):
 		for iteration, img_lowlight in enumerate(train_loader):
@@ -66,7 +82,30 @@ def train(config, exp, Gaussian=None):
 			optimizer.step()
 
 			if ((iteration+1) % config.display_iter) == 0:
-				print("Loss at epoch %04d iteration" % epoch, iteration+1, ":", loss.item(), enhanced_image.mean().item(), imgname,)
+				global_iteration = epoch * steps_per_epoch + iteration + 1
+				elapsed_seconds = time.monotonic() - training_start_time
+				average_step_seconds = elapsed_seconds / global_iteration
+				remaining_seconds = (total_iterations - global_iteration) * average_step_seconds
+				print(
+					'Train | epoch {}/{} | global iteration {}/{} | step {}/{} | '
+					'loss_total {:.6f} | loss_reverse_degradation {:.6f} | '
+					'loss_variance_suppression {:.6f} | enhanced_mean {:.6f} | '
+					'image {} | elapsed {} | eta {}'.format(
+						epoch + 1,
+						config.num_epochs,
+						global_iteration,
+						total_iterations,
+						iteration + 1,
+						steps_per_epoch,
+						loss.item(),
+						loss1.item(),
+						loss2.item(),
+						enhanced_image.mean().item(),
+						imgname,
+						format_duration(elapsed_seconds),
+						format_duration(remaining_seconds),
+					)
+				)
 				torchvision.utils.save_image(enhanced_image, 'tmp.png')
 		if ((epoch+1) % config.snapshot_epoch) == 0:
 			torchvision.utils.save_image(enhanced_image, 'tmp.png')
