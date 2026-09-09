@@ -34,8 +34,7 @@ def weights_init(m):
 
 def train(config, exp, Gaussian=None):
 
-	os.environ['CUDA_VISIBLE_DEVICES']='0'
-
+	# 由启动命令的 CUDA_VISIBLE_DEVICES 决定可见单卡，进程内默认使用 cuda:0。
 	net = mymodel.enhance_net_nopool().cuda()
 
 	net.apply(weights_init)

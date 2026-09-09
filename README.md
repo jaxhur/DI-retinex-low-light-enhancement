@@ -18,16 +18,16 @@ DI-Retinex自监督训练：训练阶段只读取低照图像，不读取配对 
 git clone https://github.com/jaxhur/DI-retinex-low-light-enhancement.git
 cd DI-retinex-low-light-enhancement
 
-conda create -n di-retinex python=3.8 -y
-conda activate di-retinex
+conda create -n di-retinex-modern python=3.10 -y
+conda activate di-retinex-modern
 
-python -m pip install \
-  torch==1.9.1+cu111 \
-  torchvision==0.10.1+cu111 \
-  -f https://download.pytorch.org/whl/torch_stable.html
+python -m pip install --upgrade pip
+python -m pip install torch==2.12.0 torchvision==0.27.0 --index-url https://download.pytorch.org/whl/cu130
 
-python -m pip install numpy==1.21.6 Pillow opencv-python natsort lpips==0.1.4 gdown
+python -m pip install numpy==1.26.4 Pillow opencv-python natsort lpips==0.1.4 gdown
 ```
+
+
 
 
 

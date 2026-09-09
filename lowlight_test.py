@@ -39,7 +39,7 @@ def getModelSize(model):
     return (param_size, param_sum, buffer_size, buffer_sum, all_size)
  
 def lowlight(image_path, net, source_root, save_path, device):
-	os.environ['CUDA_VISIBLE_DEVICES']='0'
+	# GPU 由启动命令的 CUDA_VISIBLE_DEVICES 选择，避免在测试函数内写死物理卡号。
 	data_lowlight = load_rgb_tensor(image_path, device)
 
 	
