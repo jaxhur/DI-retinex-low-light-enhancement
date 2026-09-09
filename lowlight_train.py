@@ -93,7 +93,8 @@ if __name__ == "__main__":
 	parser.add_argument('--lr', type=float, default=0.001)
 	parser.add_argument('--weight_decay', type=float, default=0.0001)
 	parser.add_argument('--grad_clip_norm', type=float, default=0.1)
-	parser.add_argument('--num_epochs', type=int, default=200)
+	parser.add_argument('--num_epochs', type=int, default=1000,
+		help='所有 LOL 复现实验统一训练 1000 个 epoch。')
 	parser.add_argument('--train_batch_size', type=int, default=1)
 	parser.add_argument('--num_workers', type=int, default=4)
 	parser.add_argument('--display_iter', type=int, default=10)
@@ -116,4 +117,3 @@ if __name__ == "__main__":
 	set_seed(seed)
 	train(config, exp)
 
-			
